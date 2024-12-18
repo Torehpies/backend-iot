@@ -47,53 +47,14 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         password: hashedPassword,
         isApproved: false
     });
-
-    // Send verification email
-    const token = jwt.sign({ email }, process.env.JWT_SECRET as string, { expiresIn: '1d' });
-    const verificationLink = `${process.env.LIVE_URL}/verify/${token}`;
-
-    const mailTransporter = nodeMailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: "airiotsystem@gmail.com",
-            pass: "uipvlalsvweccyiy",
-        }
-    });
-
-    let mailDetails = {
-        from: "airiotsystem@gmail.com",
-        to: email,
-        subject: "Email Verification",
-        html: `
-<html>
-<head>
-    <title>Email Verification</title>
-</head>
-<body>
-    <h1>Email Verification</h1>
-    <p>Dear ${name},</p>
-    <p>Please click the link below to verify your email address:</p>
-    <a href="${verificationLink}">Verify Email</a>
-    <p>Thank you,</p>
-    <p>Air Iot System</p>
-</body>
-</html>
-        `,
-    };
-
-    mailTransporter.sendMail(mailDetails, async (err, data) => {
-        if (err) {
-            console.log(err);
-            return next(res.status(500).json({ message: "Something went wrong while sending the email" }));
-        } else {
-            try {
-                await newUser.save();
-                return next(res.status(201).json({ message: "User created successfully. Verify your account in your email" }));
-            } catch (error: any) {
-                return next(res.status(500).json({ message: error.message }));
-            }
-        }
-    });
+    
+    try {
+        await newUser.save();
+        return next(res.status(201).json({ message: "User created successfully" }));
+    } catch (error: any) {
+        console.log(error);
+        return next(res.status(500).json({ message: error.message }));
+    }
 }
 
 export const sendEmail = async (req: Request, res: Response, next: NextFunction) => {
